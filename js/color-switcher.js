@@ -87,6 +87,7 @@ function changeColor(color) {
     // Obtém a cena A-Frame
     const scene = document.querySelector('a-scene');
     const modelContainer = document.querySelector('#modelo3d-1');
+    const parentContainer = document.querySelector('#modelo-container');
     
     if (!scene || !modelContainer) {
         addLog('ERRO: Cena ou container do modelo não encontrado');
@@ -99,72 +100,112 @@ function changeColor(color) {
     
     addLog(`Carregando modelo: ${modelUrl}`);
     
-    // Remove o modelo atual primeiro
-    modelContainer.removeAttribute('gltf-model');
+    // Preserva a posição, rotação e escala atuais do modelo
+    const currentPosition = modelContainer.getAttribute('position') || {x: 0, y: 0, z: 0.1};
+    const currentRotation = modelContainer.getAttribute('rotation') || {x: 0, y: 0, z: 0};
+    const currentScale = modelContainer.getAttribute('scale') || {x: 8, y: 8, z: 8};
+    const isVisible = modelContainer.getAttribute('visible');
     
-    // Remove o asset anterior se existir
-    const oldAsset = document.querySelector(`#${modelId}`);
-    if (oldAsset) {
-        oldAsset.parentNode.removeChild(oldAsset);
-        addLog(`Asset anterior removido: ${modelId}`);
-    }
-    
-    // Cria um novo asset
-    const newAsset = document.createElement('a-asset-item');
-    newAsset.setAttribute('id', modelId);
-    newAsset.setAttribute('src', modelUrl);
-    
-    // Adiciona listeners para monitorar o carregamento
-    newAsset.addEventListener('loaded', () => {
-        addLog(`Modelo carregado com sucesso: ${modelUrl}`);
-        // Atualiza o modelo após o carregamento
-        modelContainer.setAttribute('gltf-model', `#${modelId}`);
-        // Reseta a posição e escala
-        modelContainer.setAttribute('position', '0 0 0.1');
-        modelContainer.setAttribute('scale', '8 8 8');
-        modelContainer.setAttribute('rotation', '0 0 0');
-        // Força a atualização da cena
-        modelContainer.object3D.visible = true;
-        modelContainer.object3D.updateMatrixWorld(true);
-        scene.object3D.updateMatrixWorld(true);
-    });
-    
-    newAsset.addEventListener('error', (error) => {
-        addLog(`ERRO ao carregar modelo: ${modelUrl}`);
-        addLog(`Detalhes do erro: ${error.message}`);
-    });
-    
-    // Adiciona o novo asset à cena
-    scene.querySelector('a-assets').appendChild(newAsset);
-    
-    // Adiciona uma animação de fade
+    // Aplica uma animação de dissolução
     modelContainer.setAttribute('animation', {
         property: 'opacity',
-        from: 0,
-        to: 1,
-        dur: 500,
-        easing: 'easeInOutQuad'
+        from: 1,
+        to: 0,
+        dur: 300,
+        easing: 'easeInQuad'
     });
     
-    // Remove a animação após sua conclusão
+    // Remove o modelo após a animação de dissolução
     setTimeout(() => {
-        modelContainer.removeAttribute('animation');
-    }, 500);
-
-    // Adiciona um listener para o evento de carregamento do modelo
-    modelContainer.addEventListener('model-loaded', function() {
-        addLog(`Modelo aplicado e visível: ${modelUrl}`);
-        // Força atualização da visibilidade
-        modelContainer.object3D.visible = true;
-        modelContainer.object3D.updateMatrixWorld(true);
-        scene.object3D.updateMatrixWorld(true);
+        // Remove o modelo atual primeiro
+        modelContainer.removeAttribute('gltf-model');
         
-        // Verifica se o marcador está visível
-        const target = document.querySelector('a-entity[mindar-image-target]');
-        if (target && target.object3D.visible) {
-            modelContainer.setAttribute('visible', true);
+        // Remove o asset anterior se existir
+        const oldAsset = document.querySelector(`#${modelId}`);
+        if (oldAsset) {
+            oldAsset.parentNode.removeChild(oldAsset);
+            addLog(`Asset anterior removido: ${modelId}`);
         }
-    });
+        
+        // Cria um novo asset
+        const newAsset = document.createElement('a-asset-item');
+        newAsset.setAttribute('id', modelId);
+        newAsset.setAttribute('src', modelUrl);
+        newAsset.setAttribute('crossorigin', 'anonymous');
+        
+        // Aplica uma classe para controle de estabilidade durante o carregamento
+        if (parentContainer) {
+            parentContainer.classList.add('loading-model');
+        }
+        
+        // Adiciona listeners para monitorar o carregamento
+        newAsset.addEventListener('loaded', () => {
+            addLog(`Modelo carregado com sucesso: ${modelUrl}`);
+            
+            // Aguarda um curto período antes de aplicar o modelo
+            setTimeout(() => {
+                // Atualiza o modelo após o carregamento
+                modelContainer.setAttribute('gltf-model', `#${modelId}`);
+                
+                // Restaura a posição, rotação e escala originais
+                modelContainer.setAttribute('position', currentPosition);
+                modelContainer.setAttribute('rotation', currentRotation);
+                modelContainer.setAttribute('scale', currentScale);
+                modelContainer.setAttribute('visible', isVisible);
+                
+                // Força a atualização da cena 
+                modelContainer.object3D.visible = true;
+                modelContainer.object3D.updateMatrix();
+                modelContainer.object3D.updateMatrixWorld(true);
+                
+                // Anima a entrada do novo modelo
+                modelContainer.setAttribute('animation', {
+                    property: 'opacity',
+                    from: 0,
+                    to: 1,
+                    dur: 300,
+                    easing: 'easeOutQuad'
+                });
+                
+                // Remove a classe de carregamento após terminar o processo
+                if (parentContainer) {
+                    parentContainer.classList.remove('loading-model');
+                }
+                
+                // Força uma maior estabilidade após a troca do modelo
+                if (parentContainer) {
+                    // Estabilização adicional temporária
+                    const currentStabilizerSettings = parentContainer.getAttribute('stabilizer') || {};
+                    const enhancedSettings = {
+                        smoothingFactor: 0.6, // Maior estabilização temporária
+                        positionThreshold: 0.002,
+                        rotationThreshold: 0.005
+                    };
+                    
+                    parentContainer.setAttribute('stabilizer', enhancedSettings);
+                    
+                    // Voltar às configurações normais após um período
+                    setTimeout(() => {
+                        parentContainer.setAttribute('stabilizer', currentStabilizerSettings);
+                    }, 1500);
+                }
+                
+            }, 100);
+        });
+        
+        newAsset.addEventListener('error', (error) => {
+            addLog(`ERRO ao carregar modelo: ${modelUrl}`);
+            addLog(`Detalhes do erro: ${error.message}`);
+            
+            // Remove o estado de carregamento em caso de erro
+            if (parentContainer) {
+                parentContainer.classList.remove('loading-model');
+            }
+        });
+        
+        // Adiciona o novo asset à cena
+        scene.querySelector('a-assets').appendChild(newAsset);
+    }, 300);
 }
 
 // Adiciona listener para erros de carregamento de modelo
