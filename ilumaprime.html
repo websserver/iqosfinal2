@@ -194,6 +194,12 @@
       device-orientation-permission-ui="enabled: false">
       <a-assets>
         <a-asset-item id="modelo" src="modelo3d/modelo3_prime/navy-blazer.glb"></a-asset-item>
+        <!-- Pré-carregamento de modelos para as diferentes cores -->
+        <a-asset-item id="model-navy" src="modelo3d/modelo3_prime/navy-blazer.glb"></a-asset-item>
+        <a-asset-item id="model-olive" src="modelo3d/modelo3_prime/olive-green.glb"></a-asset-item>
+        <a-asset-item id="model-jacaranda" src="modelo3d/modelo3_prime/jacaranda.glb"></a-asset-item>
+        <a-asset-item id="model-rooibos" src="modelo3d/modelo3_prime/rooibos-tea.glb"></a-asset-item>
+        <a-asset-item id="model-turquoise" src="modelo3d/modelo3_prime/pastel-turquoise.glb"></a-asset-item>
       </a-assets>
 
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
@@ -210,7 +216,7 @@
           <!-- Modelo 3D centralizado -->
           <a-entity 
             id="modelo3d-1" 
-            gltf-model="#modelo"
+            gltf-model="#model-navy"
             position="0 0 0.1" 
             rotation="0 0 0" 
             scale="8 8 8" 
