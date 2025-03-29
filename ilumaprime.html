@@ -7,8 +7,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.3/dist/mindar-image-aframe.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.3/dist/mind-ar-image-aframe.prod.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@7.0.0/dist/aframe-extras.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <link rel="stylesheet" href="css/styles.css">
     <style>
       .overlay-gradient {
@@ -200,15 +201,10 @@
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
       <a-entity mindar-image-target="targetIndex: 0">
-        <!-- Container principal para estabilização -->
-        <a-entity id="modelo-container" position="0 0 0">
-          <!-- Pontos de ancoragem para estabilização -->
-          <a-box position="-0.5 0 0" scale="0.01 0.01 0.01" opacity="0"></a-box>
-          <a-box position="0.5 0 0" scale="0.01 0.01 0.01" opacity="0"></a-box>
-          <a-box position="0 0.5 0" scale="0.01 0.01 0.01" opacity="0"></a-box>
-          <a-box position="0 -0.5 0" scale="0.01 0.01 0.01" opacity="0"></a-box>
-          
-          <!-- Modelo 3D centralizado -->
+        <a-entity 
+          id="modelo-container" 
+          position="0 0 0"
+          model-stabilizer>
           <a-entity 
             id="modelo3d-1" 
             gltf-model="#modelo"
@@ -624,6 +620,25 @@
 
       // Aplica o componente de estabilização ao container
       document.querySelector('#modelo-container').setAttribute('stabilizer', '');
+
+      AFRAME.registerComponent('model-stabilizer', {
+        init: function() {
+          this.isStabilized = false;
+          this.lastPosition = new THREE.Vector3();
+          this.lastRotation = new THREE.Euler();
+          this.el.addEventListener('targetFound', () => {
+            this.isStabilized = true;
+            this.lastPosition.copy(this.el.object3D.position);
+            this.lastRotation.copy(this.el.object3D.rotation);
+          });
+        },
+        tick: function() {
+          if (this.isStabilized) {
+            this.el.object3D.position.copy(this.lastPosition);
+            this.el.object3D.rotation.copy(this.lastRotation);
+          }
+        }
+      });
     </script>
 
     <script src="js/ilumaprime.js"></script>
