@@ -171,23 +171,13 @@
 
     <a-scene
       mindar-image="imageTargetSrc: ./markers/targets.mind; 
-      filterMinCF: 0.01; 
-      filterBeta: 800;
-      warmupTolerance: 10;
-      missTolerance: 25;
-      smoothCount: 50;
-      smoothTolerance: 0.05;
-      smoothThreshold: 1;
-      maxTrack: 1;
-      minDetectionConfidence: 0.4;
-      maxDetectionConfidence: 0.95;
-      trackingMethod: best;
-      trackingSmoothingFactor: 0.6;
-      trackingThreshold: 0.4;
-      trackingTimeout: 5000;
-      trackingResetTimeout: 5000;
-      trackingResetThreshold: 0.1;
-      debugUIEnabled: true"
+      filterMinCF: 0.001; 
+      filterBeta: 1000;
+      warmupTolerance: 5;
+      missTolerance: 5;
+      smoothCount: 10;
+      smoothTolerance: 0.01;
+      smoothThreshold: 5"
       color-space="sRGB" 
       renderer="colorManagement: true, physicallyCorrectLights" 
       vr-mode-ui="enabled: false"
@@ -197,7 +187,7 @@
         <a-asset-item id="modelo" src="modelo3d/modelo3_prime/navy-blazer.glb"></a-asset-item>
       </a-assets>
 
-      <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+      <a-camera position="0 0 0" look-controls="enabled: false" cursor="fuse: false; rayOrigin: mouse;"></a-camera>
 
       <a-entity mindar-image-target="targetIndex: 0">
         <a-entity 
@@ -210,8 +200,7 @@
           visible="true"
           animation="property: position; enabled: false"
           animation-mixer="loop: repeat; timeScale: 0"
-          gesture-handler-custom="minScale: 4; maxScale: 12; rotationSensitivity: 0.2; scaleSensitivity: 0.08"
-          bind__visible="true">
+          gesture-handler-custom="minScale: 4; maxScale: 12; rotationSensitivity: 0.2; scaleSensitivity: 0.08">
         </a-entity>
       </a-entity>
     </a-scene>
