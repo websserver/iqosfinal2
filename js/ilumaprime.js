@@ -13,36 +13,46 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  // Log inicial
-  console.log('Iniciando aplicação AR');
-  console.log('Modelo encontrado:', !!modelo);
-  console.log('Target encontrado:', !!target);
+  // Função para inicializar o modelo
+  function initializeModel() {
+    if (!modeloInicializado && modelo) {
+      console.log('Inicializando modelo');
+      modelo.setAttribute('visible', 'true');
+      modelo.setAttribute('scale', '8 8 8');
+      
+      // Desabilitar o raycaster para evitar problemas de interação
+      modelo.setAttribute('raycaster', 'enabled: false');
+      
+      // Fixar a posição do modelo
+      modelo.object3D.position.set(0, 0, 0.1);
+      modelo.object3D.rotation.set(0, 0, 0);
+      
+      modeloInicializado = true;
+      hideLoading();
+    }
+  }
 
   // Eventos de detecção do marcador
   if (target) {
     target.addEventListener("targetFound", () => {
       console.log('Marcador detectado!');
-      if (modelo && !modeloInicializado) {
-        console.log('Inicializando modelo pela primeira vez');
+      initializeModel();
+    });
+
+    // Remover comportamento de targetLost
+    target.addEventListener("targetLost", () => {
+      console.log('Marcador perdido - mantendo modelo visível');
+      if (modeloInicializado) {
         modelo.setAttribute('visible', 'true');
-        modelo.setAttribute('scale', '8 8 8');
-        modeloInicializado = true;
-        hideLoading();
-      } else {
-        console.log('Modelo já inicializado ou não encontrado');
       }
     });
+  }
 
-    // Adicionar log para targetLost
-    target.addEventListener("targetLost", () => {
-      console.log('Marcador perdido!');
-      console.log('Estado do modelo - Visível:', modelo.getAttribute('visible'));
-      console.log('Estado do modelo - Inicializado:', modeloInicializado);
-    });
-
-    // Adicionar log para tracking
-    target.addEventListener("tracking", (event) => {
-      console.log('Tracking atual:', event.detail.tracking);
+  // Adicionar evento para quando o modelo for carregado
+  if (modelo) {
+    modelo.addEventListener('model-loaded', () => {
+      console.log('Modelo carregado com sucesso');
+      initializeModel();
     });
   }
 
