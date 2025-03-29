@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const target = document.querySelector('a-entity[mindar-image-target]');
   const sceneEl = document.querySelector('a-scene');
   let modeloInicializado = false;
+  let ultimaPosicao = null;
 
   // Criar elemento para logs visuais
   const logContainer = document.createElement('div');
@@ -26,7 +27,6 @@ document.addEventListener('DOMContentLoaded', function() {
   // Função para adicionar logs
   function addLog(message) {
     const time = new Date().toLocaleTimeString();
-    console.log(`[${time}] ${message}`);
     const logEntry = document.createElement('div');
     logEntry.textContent = `[${time}] ${message}`;
     logContainer.insertBefore(logEntry, logContainer.firstChild);
@@ -43,30 +43,47 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
+  // Função para salvar a posição atual do modelo
+  function salvarPosicao() {
+    if (modelo && modelo.object3D) {
+      ultimaPosicao = {
+        position: modelo.object3D.position.clone(),
+        rotation: modelo.object3D.rotation.clone(),
+        scale: modelo.object3D.scale.clone()
+      };
+      addLog('Posição do modelo salva');
+    }
+  }
+
+  // Função para restaurar a última posição do modelo
+  function restaurarPosicao() {
+    if (modelo && ultimaPosicao) {
+      modelo.object3D.position.copy(ultimaPosicao.position);
+      modelo.object3D.rotation.copy(ultimaPosicao.rotation);
+      modelo.object3D.scale.copy(ultimaPosicao.scale);
+      addLog('Posição do modelo restaurada');
+    }
+  }
+
   // Função para inicializar o modelo
   function initializeModel() {
     if (!modeloInicializado && modelo) {
-      addLog('Tentando inicializar modelo');
+      addLog('Inicializando modelo');
       try {
         modelo.setAttribute('visible', 'true');
         modelo.setAttribute('scale', '8 8 8');
         modelo.setAttribute('position', '0 0 0.1');
         modelo.setAttribute('rotation', '0 0 0');
         
-        // Verificar se o modelo está realmente visível
-        setTimeout(() => {
-          const isVisible = modelo.getAttribute('visible');
-          const currentScale = modelo.getAttribute('scale');
-          addLog(`Estado após inicialização - Visível: ${isVisible}, Escala: ${currentScale.x}`);
-        }, 100);
-
+        // Desabilitar o raycaster para evitar problemas de interação
+        modelo.setAttribute('raycaster', 'enabled: false');
+        
         modeloInicializado = true;
+        salvarPosicao();
         addLog('Modelo inicializado com sucesso');
       } catch (error) {
         addLog(`Erro ao inicializar modelo: ${error.message}`);
       }
-    } else {
-      addLog(`Não inicializou - já inicializado: ${modeloInicializado}, modelo existe: ${!!modelo}`);
     }
   }
 
@@ -91,13 +108,17 @@ document.addEventListener('DOMContentLoaded', function() {
     target.addEventListener("targetFound", () => {
       addLog('🎯 Marcador detectado');
       initializeModel();
+      if (modeloInicializado) {
+        modelo.setAttribute('visible', 'true');
+        salvarPosicao();
+      }
     });
 
     target.addEventListener("targetLost", () => {
-      addLog('❌ Marcador perdido');
+      addLog('❌ Marcador perdido - mantendo modelo visível');
       if (modeloInicializado) {
-        addLog('Mantendo modelo visível');
         modelo.setAttribute('visible', 'true');
+        restaurarPosicao();
       }
     });
   }
@@ -109,21 +130,14 @@ document.addEventListener('DOMContentLoaded', function() {
       initializeModel();
     });
 
-    modelo.addEventListener('loaded', () => {
-      addLog('Entidade do modelo carregada');
-    });
-
-    // Monitorar mudanças de visibilidade
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        if (mutation.attributeName === 'visible') {
-          const isVisible = modelo.getAttribute('visible');
-          addLog(`🔍 Visibilidade alterada: ${isVisible}`);
-        }
-      });
-    });
-
-    observer.observe(modelo, { attributes: true });
+    // Garantir que o modelo permaneça visível
+    setInterval(() => {
+      if (modeloInicializado && !modelo.getAttribute('visible')) {
+        addLog('Forçando visibilidade do modelo');
+        modelo.setAttribute('visible', 'true');
+        restaurarPosicao();
+      }
+    }, 1000);
   }
 
   // Esconder loading após 5 segundos (fallback)
