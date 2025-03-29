@@ -181,7 +181,9 @@
       uiLoading: none;
       uiScanning: none;
       uiError: none;
-      uiTracking: none"
+      uiTracking: none;
+      debugUI: false;
+      debug: false"
       color-space="sRGB" 
       renderer="colorManagement: true, physicallyCorrectLights" 
       vr-mode-ui="enabled: false"
@@ -206,7 +208,7 @@
           animation-mixer="loop: repeat; timeScale: 0"
           gesture-handler-custom="minScale: 4; maxScale: 12; rotationSensitivity: 0.2; scaleSensitivity: 0.08"
           mindar-image-target="targetIndex: 0"
-          mindar-image-target="tracking: true"
+          mindar-image-target="tracking: false"
           mindar-image-target="smooth: true"
           mindar-image-target="smoothCount: 10"
           mindar-image-target="smoothTolerance: 0.01"
@@ -290,7 +292,6 @@
 
       // Target events
       target.addEventListener('targetFound', function() {
-        console.log('Marcador encontrado');
         modelo.setAttribute('visible', true);
         modelo.object3D.visible = true;
         
@@ -310,7 +311,6 @@
       });
 
       target.addEventListener('targetLost', function() {
-        console.log('Marcador perdido');
         // Mantemos a posição atual do modelo
         const currentPosition = new THREE.Vector3();
         modelo.object3D.getWorldPosition(currentPosition);
@@ -318,9 +318,6 @@
         // Mantemos a rotação atual
         const currentRotation = new THREE.Euler();
         modelo.object3D.getWorldRotation(currentRotation);
-        
-        // Desativamos o rastreamento do marcador
-        modelo.removeAttribute('mindar-image-target');
         
         // Mantemos o modelo visível e na mesma posição
         modelo.setAttribute('visible', true);
