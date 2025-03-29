@@ -208,9 +208,10 @@
           scale="8 8 8" 
           class="clickable"
           visible="true"
-          animation-mixer="loop: repeat"
-          animation="property: position; dur: 300; easing: easeOutQuad"
-          gesture-handler-custom="minScale: 4; maxScale: 12; rotationSensitivity: 0.2; scaleSensitivity: 0.08">
+          animation="property: position; enabled: false"
+          animation-mixer="loop: repeat; timeScale: 0"
+          gesture-handler-custom="minScale: 4; maxScale: 12; rotationSensitivity: 0.2; scaleSensitivity: 0.08"
+          bind__visible="true">
         </a-entity>
       </a-entity>
     </a-scene>
