@@ -177,7 +177,11 @@
       missTolerance: 5;
       smoothCount: 10;
       smoothTolerance: 0.01;
-      smoothThreshold: 5"
+      smoothThreshold: 5;
+      uiLoading: none;
+      uiScanning: none;
+      uiError: none;
+      uiTracking: none"
       color-space="sRGB" 
       renderer="colorManagement: true, physicallyCorrectLights" 
       vr-mode-ui="enabled: false"
@@ -200,7 +204,14 @@
           visible="true"
           animation="property: position; enabled: false"
           animation-mixer="loop: repeat; timeScale: 0"
-          gesture-handler-custom="minScale: 4; maxScale: 12; rotationSensitivity: 0.2; scaleSensitivity: 0.08">
+          gesture-handler-custom="minScale: 4; maxScale: 12; rotationSensitivity: 0.2; scaleSensitivity: 0.08"
+          mindar-image-target="targetIndex: 0"
+          mindar-image-target="tracking: true"
+          mindar-image-target="smooth: true"
+          mindar-image-target="smoothCount: 10"
+          mindar-image-target="smoothTolerance: 0.01"
+          mindar-image-target="smoothThreshold: 5"
+          position-keeper>
         </a-entity>
       </a-entity>
     </a-scene>
@@ -282,9 +293,8 @@
         console.log('Marcador encontrado');
         modelo.setAttribute('visible', true);
         modelo.object3D.visible = true;
-        modelo.object3D.updateMatrixWorld(true);
         
-        // Captura a posição atual do modelo quando o marcador é encontrado
+        // Captura a posição atual do modelo
         const currentPosition = new THREE.Vector3();
         modelo.object3D.getWorldPosition(currentPosition);
         
@@ -295,18 +305,28 @@
           z: currentPosition.z
         });
         
-        // Desativa o rastreamento contínuo após a captura
-        const mindarsystem = document.querySelector('a-scene').systems['mindar-image-system'];
-        if (mindarsystem && mindarsystem.arController) {
-          // Mantém o sistema ativo, mas fixa o modelo na posição atual
-          console.log('Modelo capturado na posição:', currentPosition);
-        }
+        // Desativa o rastreamento contínuo
+        modelo.removeAttribute('mindar-image-target');
       });
 
       target.addEventListener('targetLost', function() {
         console.log('Marcador perdido');
-        modelo.setAttribute('visible', false);
-        modelo.object3D.visible = false;
+        // Mantemos a posição atual do modelo
+        const currentPosition = new THREE.Vector3();
+        modelo.object3D.getWorldPosition(currentPosition);
+        
+        // Mantemos a rotação atual
+        const currentRotation = new THREE.Euler();
+        modelo.object3D.getWorldRotation(currentRotation);
+        
+        // Desativamos o rastreamento do marcador
+        modelo.removeAttribute('mindar-image-target');
+        
+        // Mantemos o modelo visível e na mesma posição
+        modelo.setAttribute('visible', true);
+        modelo.object3D.visible = true;
+        modelo.object3D.position.copy(currentPosition);
+        modelo.object3D.rotation.copy(currentRotation);
       });
 
       AFRAME.registerComponent('gesture-handler-custom', {
@@ -601,6 +621,45 @@
 
       // Aplica o componente de estabilização ao container
       document.querySelector('#modelo-container').setAttribute('stabilizer', '');
+
+      // Componente para manter posição quando marcador é perdido
+      AFRAME.registerComponent('position-keeper', {
+        init: function() {
+          this.lastPosition = new THREE.Vector3();
+          this.lastRotation = new THREE.Euler();
+          this.isTracking = true;
+          this.isFixed = false;
+          
+          // Eventos do marcador
+          const target = document.querySelector('a-entity[mindar-image-target]');
+          if (target) {
+            target.addEventListener('targetFound', () => {
+              this.isTracking = true;
+              // Captura a posição inicial quando o marcador é encontrado
+              this.el.object3D.getWorldPosition(this.lastPosition);
+              this.el.object3D.getWorldRotation(this.lastRotation);
+              this.isFixed = true;
+            });
+            target.addEventListener('targetLost', () => {
+              this.isTracking = false;
+              // Mantém a última posição conhecida
+              this.el.object3D.position.copy(this.lastPosition);
+              this.el.object3D.rotation.copy(this.lastRotation);
+            });
+          }
+        },
+        
+        tick: function() {
+          if (this.isFixed) {
+            // Mantém a posição e rotação fixas no espaço
+            this.el.object3D.position.copy(this.lastPosition);
+            this.el.object3D.rotation.copy(this.lastRotation);
+            
+            // Desativa o rastreamento do marcador
+            this.el.removeAttribute('mindar-image-target');
+          }
+        }
+      });
     </script>
 
     <script src="js/ilumaprime.js"></script>
