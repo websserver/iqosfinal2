@@ -193,12 +193,13 @@
       renderer="colorManagement: true, physicallyCorrectLights" 
       vr-mode-ui="enabled: false"
       device-orientation-permission-ui="enabled: false"
-      capture-mode="enabled: true">
+      capture-mode="enabled: true"
+      camera="active: true">
       <a-assets>
         <a-asset-item id="modelo" src="modelo3d/modelo3_prime/navy-blazer.glb"></a-asset-item>
       </a-assets>
 
-      <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+      <a-camera position="0 0 0" look-controls="enabled: false" camera="active: true"></a-camera>
 
       <a-entity mindar-image-target="targetIndex: 0">
         <a-entity 
@@ -247,27 +248,27 @@
           <div class="feature-title">Modo Pausa</div>
         </div>
         <div class="feature-description">
-          Pausar e retomar a utilização, em qualquer momento.
+          Pausa automática após 5 minutos de inatividade para poupar bateria.
         </div>
       </div>
 
       <div class="feature-item">
         <div class="feature-header">
-          <img src="icons/puff.svg" alt="FlexPuff" class="feature-icon">
-          <div class="feature-title">FlexPuff</div>
+          <img src="icons/battery.svg" alt="Bateria" class="feature-icon">
+          <div class="feature-title">Bateria</div>
         </div>
         <div class="feature-description">
-          Permite até 4 aspirações extra**.
+          Bateria de longa duração com indicador de nível.
         </div>
       </div>
 
       <div class="feature-item">
         <div class="feature-header">
-          <img src="icons/battery.svg" alt="FlexBattery" class="feature-icon">
-          <div class="feature-title">FlexBattery</div>
+          <img src="icons/clean.svg" alt="Limpeza" class="feature-icon">
+          <div class="feature-title">Limpeza</div>
         </div>
         <div class="feature-description">
-          Prolongue o tempo de vida útil da bateria do equipamento até um ano*** ou obtenha até 3 utilizações consecutivas****.
+          Sistema de limpeza automática para manter o dispositivo sempre pronto.
         </div>
       </div>
     </div>
@@ -636,6 +637,17 @@
           if (this.isStabilized) {
             this.el.object3D.position.copy(this.lastPosition);
             this.el.object3D.rotation.copy(this.lastRotation);
+          }
+        }
+      });
+
+      // Adiciona um listener para garantir que a câmera seja ativada
+      window.addEventListener('load', () => {
+        const scene = document.querySelector('a-scene');
+        if (scene.hasLoaded) {
+          const camera = document.querySelector('a-camera');
+          if (camera) {
+            camera.setAttribute('camera', 'active: true');
           }
         }
       });
