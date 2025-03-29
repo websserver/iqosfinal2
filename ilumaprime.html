@@ -7,9 +7,8 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.3/dist/mind-ar-image-aframe.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.3/dist/mindar-image-aframe.prod.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@7.0.0/dist/aframe-extras.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <link rel="stylesheet" href="css/styles.css">
     <style>
       .overlay-gradient {
@@ -193,19 +192,23 @@
       renderer="colorManagement: true, physicallyCorrectLights" 
       vr-mode-ui="enabled: false"
       device-orientation-permission-ui="enabled: false"
-      capture-mode="enabled: true"
-      camera="active: true">
+      capture-mode="enabled: true">
       <a-assets>
         <a-asset-item id="modelo" src="modelo3d/modelo3_prime/navy-blazer.glb"></a-asset-item>
       </a-assets>
 
-      <a-camera position="0 0 0" look-controls="enabled: false" camera="active: true"></a-camera>
+      <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
       <a-entity mindar-image-target="targetIndex: 0">
-        <a-entity 
-          id="modelo-container" 
-          position="0 0 0"
-          model-stabilizer>
+        <!-- Container principal para estabilização -->
+        <a-entity id="modelo-container" position="0 0 0">
+          <!-- Pontos de ancoragem para estabilização -->
+          <a-box position="-0.5 0 0" scale="0.01 0.01 0.01" opacity="0"></a-box>
+          <a-box position="0.5 0 0" scale="0.01 0.01 0.01" opacity="0"></a-box>
+          <a-box position="0 0.5 0" scale="0.01 0.01 0.01" opacity="0"></a-box>
+          <a-box position="0 -0.5 0" scale="0.01 0.01 0.01" opacity="0"></a-box>
+          
+          <!-- Modelo 3D centralizado -->
           <a-entity 
             id="modelo3d-1" 
             gltf-model="#modelo"
@@ -248,27 +251,27 @@
           <div class="feature-title">Modo Pausa</div>
         </div>
         <div class="feature-description">
-          Pausa automática após 5 minutos de inatividade para poupar bateria.
+          Pausar e retomar a utilização, em qualquer momento.
         </div>
       </div>
 
       <div class="feature-item">
         <div class="feature-header">
-          <img src="icons/battery.svg" alt="Bateria" class="feature-icon">
-          <div class="feature-title">Bateria</div>
+          <img src="icons/puff.svg" alt="FlexPuff" class="feature-icon">
+          <div class="feature-title">FlexPuff</div>
         </div>
         <div class="feature-description">
-          Bateria de longa duração com indicador de nível.
+          Permite até 4 aspirações extra**.
         </div>
       </div>
 
       <div class="feature-item">
         <div class="feature-header">
-          <img src="icons/clean.svg" alt="Limpeza" class="feature-icon">
-          <div class="feature-title">Limpeza</div>
+          <img src="icons/battery.svg" alt="FlexBattery" class="feature-icon">
+          <div class="feature-title">FlexBattery</div>
         </div>
         <div class="feature-description">
-          Sistema de limpeza automática para manter o dispositivo sempre pronto.
+          Prolongue o tempo de vida útil da bateria do equipamento até um ano*** ou obtenha até 3 utilizações consecutivas****.
         </div>
       </div>
     </div>
@@ -621,36 +624,6 @@
 
       // Aplica o componente de estabilização ao container
       document.querySelector('#modelo-container').setAttribute('stabilizer', '');
-
-      AFRAME.registerComponent('model-stabilizer', {
-        init: function() {
-          this.isStabilized = false;
-          this.lastPosition = new THREE.Vector3();
-          this.lastRotation = new THREE.Euler();
-          this.el.addEventListener('targetFound', () => {
-            this.isStabilized = true;
-            this.lastPosition.copy(this.el.object3D.position);
-            this.lastRotation.copy(this.el.object3D.rotation);
-          });
-        },
-        tick: function() {
-          if (this.isStabilized) {
-            this.el.object3D.position.copy(this.lastPosition);
-            this.el.object3D.rotation.copy(this.lastRotation);
-          }
-        }
-      });
-
-      // Adiciona um listener para garantir que a câmera seja ativada
-      window.addEventListener('load', () => {
-        const scene = document.querySelector('a-scene');
-        if (scene.hasLoaded) {
-          const camera = document.querySelector('a-camera');
-          if (camera) {
-            camera.setAttribute('camera', 'active: true');
-          }
-        }
-      });
     </script>
 
     <script src="js/ilumaprime.js"></script>
