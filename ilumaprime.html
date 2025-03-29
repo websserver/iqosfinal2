@@ -187,7 +187,8 @@
       trackingTimeout: 1000;
       trackingResetTimeout: 3000;
       trackingResetThreshold: 0.1;
-      debugUIEnabled: true"
+      debugUIEnabled: true;
+      anchor: fixed"
       color-space="sRGB" 
       renderer="colorManagement: true, physicallyCorrectLights" 
       vr-mode-ui="enabled: false"
@@ -199,9 +200,9 @@
 
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-      <a-entity mindar-image-target="targetIndex: 0">
+      <a-entity mindar-image-target="targetIndex: 0; anchor: fixed">
         <!-- Container principal para estabilização -->
-        <a-entity id="modelo-container" position="0 0 0">
+        <a-entity id="modelo-container" position="0 0 0" static-body>
           <!-- Pontos de ancoragem para estabilização -->
           <a-box position="-0.5 0 0" scale="0.01 0.01 0.01" opacity="0"></a-box>
           <a-box position="0.5 0 0" scale="0.01 0.01 0.01" opacity="0"></a-box>

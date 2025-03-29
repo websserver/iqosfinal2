@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const loading = document.querySelector('.loading');
   const modelo = document.querySelector("#modelo3d-1");
   const target = document.querySelector('a-entity[mindar-image-target]');
+  let modeloInicializado = false;
 
   // Função para esconder loading
   function hideLoading() {
@@ -15,18 +16,15 @@ document.addEventListener('DOMContentLoaded', function() {
   // Eventos de detecção do marcador
   if (target) {
     target.addEventListener("targetFound", () => {
-      if (modelo) {
+      if (modelo && !modeloInicializado) {
         modelo.setAttribute('visible', 'true');
         modelo.setAttribute('scale', '8 8 8');
+        modeloInicializado = true;
         hideLoading();
       }
     });
 
-    target.addEventListener("targetLost", () => {
-      if (modelo) {
-        modelo.setAttribute('visible', 'false');
-      }
-    });
+    // Removemos o evento targetLost para manter o modelo visível
   }
 
   // Esconder loading após 5 segundos (fallback)
